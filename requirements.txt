@@ -1,0 +1,7 @@
+grpcio
+grpcio-tools
+protobuf
+langgraph
+pydantic>=2
+chromadb
+redis
