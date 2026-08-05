@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package market.v1;
+
+option go_package = "github.com/cynthia/simulated-wall-street/proto/marketpb;marketpb";
+
+import "google/protobuf/empty.proto";
+
+enum Side {
+  SIDE_UNSPECIFIED = 0;
+  BUY = 1;
+  SELL = 2;
+}
+
+enum OrderType {
+  ORDER_TYPE_UNSPECIFIED = 0;
+  LIMIT = 1;
+  MARKET = 2;
+}
+
+message OrderRequest {
+  string order_id = 1;
+  string symbol = 2;
+  Side side = 3;
+  OrderType type = 4;
+  int64 price = 5;    // ignored for MARKET orders; integer ticks (e.g. cents)
+  int64 quantity = 6;
+}
+
+message CancelRequest {
+  string symbol = 1;
+  string order_id = 2;
+}
+
+message Trade {
+  string trade_id = 1;
+  string symbol = 2;
+  string buy_order_id = 3;
+  string sell_order_id = 4;
+  int64 price = 5;
+  int64 quantity = 6;
+  int64 timestamp_unix_ms = 7;
+  Side taker_side = 8;
+}
+
+message OrderResponse {
+  bool accepted = 1;
+  string error_message = 2;    // set when accepted is false
+  repeated Trade trades = 3;
+  int64 remaining_quantity = 4; // unfilled quantity: resting (LIMIT) or dropped (MARKET)
+}
+
+message TradeEvent {
+  Trade trade = 1;
+}
+
+message DepthLevel {
+  int64 price = 1;
+  int64 volume = 2;
+  int32 order_count = 3;
+}
+
+message MarketDepthRequest {
+  string symbol = 1;
+}
+
+message MarketDepthResponse {
+  string symbol = 1;
+  repeated DepthLevel bids = 2; // best-first, capped at top 10
+  repeated DepthLevel asks = 3; // best-first, capped at top 10
+  int64 total_bid_volume = 4;   // across the whole book, not just the levels above
+  int64 total_ask_volume = 5;
+}
+
+service MarketService {
+  rpc SubmitOrder(OrderRequest) returns (OrderResponse);
+  rpc CancelOrder(CancelRequest) returns (OrderResponse);
+  rpc GetMarketDepth(MarketDepthRequest) returns (MarketDepthResponse);
+  rpc StreamMarketData(google.protobuf.Empty) returns (stream TradeEvent);
+}
