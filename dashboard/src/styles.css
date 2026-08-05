@@ -1,0 +1,194 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0e11;
+  --panel-bg: #12161c;
+  --border: #1f242c;
+  --text: #d1d4dc;
+  --muted: #55606f;
+  --green: #26a69a;
+  --red: #ef5350;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.app__header h1 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.status-dot {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.status-dot--live {
+  background: rgba(38, 166, 154, 0.15);
+  color: var(--green);
+}
+.status-dot--down {
+  background: rgba(239, 83, 80, 0.15);
+  color: var(--red);
+}
+
+.app__grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  padding: 16px;
+  align-items: start;
+}
+
+.app__symbols {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.app__symbol-block {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #9aa4b2;
+}
+.panel__empty {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 0;
+}
+
+.ladder {
+  display: flex;
+  flex-direction: column;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.ladder__header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 0 6px 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.ladder__side {
+  display: flex;
+  flex-direction: column;
+}
+.ladder__spread {
+  text-align: center;
+  color: var(--muted);
+  padding: 4px 0;
+  font-size: 11px;
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+}
+
+.ladder-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 2px 6px;
+}
+.ladder-row__bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  opacity: 0.18;
+}
+.ladder-row--bid .ladder-row__bar {
+  background: var(--green);
+}
+.ladder-row--ask .ladder-row__bar {
+  background: var(--red);
+}
+.ladder-row > span {
+  position: relative;
+  z-index: 1;
+}
+.ladder-row--bid .ladder-row__price {
+  color: var(--green);
+}
+.ladder-row--ask .ladder-row__price {
+  color: var(--red);
+}
+.ladder-row__volume,
+.ladder-row__cumulative {
+  text-align: right;
+}
+
+.feed-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.feed-table th {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.feed-table td {
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.feed-table__context {
+  color: #9aa4b2;
+  max-width: 220px;
+}
+.feed-table__reason {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.decision {
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.decision--buy {
+  background: rgba(38, 166, 154, 0.15);
+  color: var(--green);
+}
+.decision--sell {
+  background: rgba(239, 83, 80, 0.15);
+  color: var(--red);
+}
+.decision--hold {
+  background: rgba(154, 164, 178, 0.15);
+  color: #9aa4b2;
+}

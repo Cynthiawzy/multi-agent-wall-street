@@ -33,12 +33,17 @@ type Server struct {
 
 	subMu       sync.Mutex
 	subscribers map[chan *pb.TradeEvent]struct{}
+
+	// publisher fans trades/depth out to Redis for the WebSocket bridge
+	// (bridge/main.py). Nil is a valid no-op publisher.
+	publisher Publisher
 }
 
-func NewServer() *Server {
+func NewServer(publisher Publisher) *Server {
 	return &Server{
 		books:       make(map[string]*engine.OrderBook),
 		subscribers: make(map[chan *pb.TradeEvent]struct{}),
+		publisher:   publisher,
 	}
 }
 
@@ -65,7 +70,7 @@ func (s *Server) bookFor(symbol string) *engine.OrderBook {
 	return book
 }
 
-func (s *Server) SubmitOrder(_ context.Context, req *pb.OrderRequest) (*pb.OrderResponse, error) {
+func (s *Server) SubmitOrder(ctx context.Context, req *pb.OrderRequest) (*pb.OrderResponse, error) {
 	order, err := toEngineOrder(req)
 	if err != nil {
 		return &pb.OrderResponse{Accepted: false, ErrorMessage: err.Error()}, nil
@@ -78,6 +83,8 @@ func (s *Server) SubmitOrder(_ context.Context, req *pb.OrderRequest) (*pb.Order
 	}
 
 	s.broadcastTrades(req.GetSymbol(), trades)
+	s.publishTrades(ctx, req.GetSymbol(), trades)
+	s.publishDepth(ctx, req.GetSymbol(), book.GetDepth())
 
 	return &pb.OrderResponse{
 		Accepted:          true,
@@ -86,11 +93,12 @@ func (s *Server) SubmitOrder(_ context.Context, req *pb.OrderRequest) (*pb.Order
 	}, nil
 }
 
-func (s *Server) CancelOrder(_ context.Context, req *pb.CancelRequest) (*pb.OrderResponse, error) {
+func (s *Server) CancelOrder(ctx context.Context, req *pb.CancelRequest) (*pb.OrderResponse, error) {
 	book := s.bookFor(req.GetSymbol())
 	if !book.CancelOrder(req.GetOrderId()) {
 		return &pb.OrderResponse{Accepted: false, ErrorMessage: "order not found"}, nil
 	}
+	s.publishDepth(ctx, req.GetSymbol(), book.GetDepth())
 	return &pb.OrderResponse{Accepted: true}, nil
 }
 

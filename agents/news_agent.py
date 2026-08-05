@@ -12,6 +12,7 @@ import asyncio
 from typing import Optional
 
 import chromadb
+from redis.asyncio import Redis
 
 from agents.base import AgentConfig, OrderIntent, TraderAgent
 from agents.grpc_client import MarketClient, MarketDepth
@@ -31,15 +32,23 @@ class NewsAgent(TraderAgent):
         config: NewsAgentConfig,
         client: MarketClient,
         news_collection: chromadb.Collection,
+        redis_client: Optional[Redis] = None,
     ) -> None:
-        super().__init__(config, client)
+        super().__init__(config, client, redis_client)
         self.config: NewsAgentConfig = config
         self._news = news_collection
 
     async def perceive(self) -> dict:
         depth = await self.client.get_market_depth(self.config.symbol)
+        query = f"news affecting {self.config.symbol} stock price"
         sentiment = await asyncio.to_thread(self._recent_average_sentiment)
-        return {"depth": depth, "sentiment": sentiment}
+
+        if sentiment is None:
+            summary = f"query='{query}' no headlines on record"
+        else:
+            summary = f"query='{query}' avg_sentiment={sentiment:.2f}"
+
+        return {"depth": depth, "sentiment": sentiment, "summary": summary}
 
     async def decide(self, context: dict) -> Optional[OrderIntent]:
         sentiment = context["sentiment"]
@@ -48,17 +57,19 @@ class NewsAgent(TraderAgent):
         if sentiment is None:
             return None  # no news on record for this symbol
 
-        if sentiment >= self.config.buy_sentiment_threshold and depth.asks:
+        if sentiment >= self.config.buy_sentiment_threshold:
+            price = depth.asks[0].price if depth.asks else self.config.reference_price
             return OrderIntent(
                 side="BUY",
-                price=depth.asks[0].price,
+                price=price,
                 quantity=self.config.order_quantity,
                 reason=f"positive sentiment {sentiment:.2f}",
             )
-        if sentiment <= self.config.sell_sentiment_threshold and depth.bids:
+        if sentiment <= self.config.sell_sentiment_threshold:
+            price = depth.bids[0].price if depth.bids else self.config.reference_price
             return OrderIntent(
                 side="SELL",
-                price=depth.bids[0].price,
+                price=price,
                 quantity=self.config.order_quantity,
                 reason=f"negative sentiment {sentiment:.2f}",
             )

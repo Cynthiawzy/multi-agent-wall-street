@@ -8,3 +8,9 @@ bin/
 .DS_Store
 
 .claude/settings.local.json
+
+node_modules/
+dashboard/dist/
+.mypy_cache/
+
+.vscode/

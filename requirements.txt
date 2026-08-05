@@ -5,3 +5,5 @@ langgraph
 pydantic>=2
 chromadb
 redis
+fastapi
+uvicorn[standard]

@@ -19,17 +19,21 @@ def get_news_collection(client: chromadb.ClientAPI | None = None) -> chromadb.Co
 
 def seed_sample_headlines(collection: chromadb.Collection) -> None:
     collection.upsert(
-        ids=["seed-1", "seed-2", "seed-3", "seed-4"],
+        ids=["seed-1", "seed-2", "seed-3", "seed-4", "seed-5", "seed-6"],
         documents=[
             "AAPL beats quarterly earnings estimates, raises full-year guidance",
             "Analysts upgrade AAPL price target after strong iPhone demand",
             "TSLA recalls vehicles over software defect, shares under pressure",
             "TSLA misses delivery targets amid production slowdown",
+            "MSFT Azure cloud growth beats expectations, raises outlook",
+            "MSFT unveils new AI-powered Copilot features across product line",
         ],
         metadatas=[
             {"symbol": "AAPL", "sentiment": 0.6},
             {"symbol": "AAPL", "sentiment": 0.4},
             {"symbol": "TSLA", "sentiment": -0.5},
             {"symbol": "TSLA", "sentiment": -0.4},
+            {"symbol": "MSFT", "sentiment": 0.5},
+            {"symbol": "MSFT", "sentiment": 0.45},
         ],
     )
